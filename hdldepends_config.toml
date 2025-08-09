@@ -1,0 +1,2 @@
+vhdl_files_glob = ["./**/*.vhd"]
+ignore_libs = ["ieee", "std"]
