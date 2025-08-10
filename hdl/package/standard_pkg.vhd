@@ -7,6 +7,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 package standard_pkg is
+  function is_sim return boolean;
+
   function ceil_divide(n : natural; d : natural) return natural;
   function ceil_log2(num : natural) return natural;
 
@@ -17,6 +19,14 @@ package standard_pkg is
 end package;
 
 package body standard_pkg is
+  function is_sim return boolean is
+  begin
+    -- pragma translate_off
+    return TRUE;
+    -- pragma translate_on
+    return FALSE;
+  end function;
+
   function ceil_divide(n : natural; d : natural) return natural is
     variable result : natural;
   begin
