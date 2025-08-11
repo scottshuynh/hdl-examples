@@ -15,6 +15,8 @@ package standard_pkg is
   function is_odd(num : natural) return boolean;
   function is_even(num : natural) return boolean;
 
+  function to_slv(num : integer; slv_w : natural) return std_logic_vector;
+
   function resize(slv : std_logic_vector; slv_w : natural) return std_logic_vector;
 end package;
 
@@ -63,6 +65,11 @@ package body standard_pkg is
       result := true;
     end if;
     return result;
+  end function;
+
+  function to_slv(num : integer; slv_w : natural) return std_logic_vector is
+  begin
+    return std_logic_vector(to_signed(num, slv_w));
   end function;
 
   function resize(slv : std_logic_vector; slv_w : natural) return std_logic_vector is

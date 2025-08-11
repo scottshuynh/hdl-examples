@@ -7,6 +7,7 @@ A list of modules that have been implemented and verified.
 * RAM Simple Dual Port
 * FIFO Synchronous
 * AXI-Stream Skid Buffer
+* CDC Pulse Open Loop
 
 ## Testbenches
 ### Requirements

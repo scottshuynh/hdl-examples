@@ -80,8 +80,12 @@ begin
   p_next : process (all)
   begin
     if (axis_handshake = '1') then
-      axis_next_read <= '1';
-    elsif (empty = '0' and fill_counter > 0) then
+      if( empty = '0') then
+        axis_next_read <= '1';
+      else
+        axis_next_read <= '0';
+      end if;
+    elsif (empty = '0') then
       if and axis_next_flat_vld then
         axis_next_read <= '0';
       else
@@ -110,7 +114,7 @@ begin
               axis_next_flat_vld(1) <= '0';
             end if;
           else
-            if (xor axis_next_flat_vld) then
+            if (axis_next_flat_vld = "01") then
               axis_next_flat(1)     <= axis_next_flat(0);
               axis_next_flat_vld(1) <= axis_next_flat_vld(0);
               axis_next_flat_vld(0) <= '0';
@@ -155,7 +159,7 @@ begin
         axis_handshake <= '0';
       end if;
     else
-      downstream_o   <= to_axis_tx_basic(axis_next_flat(0));
+      downstream_o   <= to_axis_tx_basic(to_slv(0, AXIS_FLAT_W));
       axis_handshake <= '0';
     end if;
   end process;

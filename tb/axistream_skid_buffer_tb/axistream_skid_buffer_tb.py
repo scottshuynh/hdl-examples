@@ -59,13 +59,20 @@ async def verify_axis_downstream(dut, verify_datas: List[int]):
         verify_datas (List[int]): List of data to scoreboard vs DUT.
     """
     verify_count = 0
+    timeout_counter = 0
     while verify_count < len(verify_datas):
         await FallingEdge(dut.clk_i)
+        assert (
+            timeout_counter < 2048
+        ), f"Verification idx #{verify_count} timed out! Expecting: {verify_datas[verify_count]}"
         if dut.axis_handshake.value == 1:
             assert (
                 verify_datas[verify_count] == dut.downstream_o.tdata.value.to_signed()
             ), f"Expecting: {verify_datas[verify_count]}, got: {dut.downstream_o.tdata.value.to_signed()}"
             verify_count += 1
+            timeout_counter = 0
+
+        timeout_counter += 1
 
 
 @cocotb.test()
@@ -82,7 +89,14 @@ async def drive_and_validate_slow_downstream(dut):
     random_ready_task = cocotb.start_soon(drive_random_readys(dut, 4))
     verify_task = cocotb.start_soon(verify_axis_downstream(dut, write_datas))
 
+    cocotb.log.info("Begin scoreboard verification...")
     while not verify_task.done():
         await RisingEdge(dut.clk_i)
 
-    random_ready_task.cancel()
+    cocotb.log.info("Scoreboard complete!")
+
+    await RisingEdge(dut.clk_i)
+    await FallingEdge(dut.clk_i)
+    assert (
+        dut.downstream_o.tvalid.value == 0
+    ), "Skid buffer is not flushed after all buffered data was streamed out of FIFO!"
