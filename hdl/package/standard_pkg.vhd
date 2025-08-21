@@ -15,7 +15,14 @@ package standard_pkg is
   function is_odd(num : natural) return boolean;
   function is_even(num : natural) return boolean;
 
+  function shift_left(slv : std_logic_vector; num_shift : natural) return std_logic_vector;
+  function shift_right(slv : std_logic_vector; num_shift : natural) return std_logic_vector;
+
+  function gray2bin(gray : std_logic_vector) return unsigned;
+  function bin2gray(bin : unsigned) return std_logic_vector;
+
   function to_slv(num : integer; slv_w : natural) return std_logic_vector;
+  function to_unsigned(sl : std_logic) return unsigned;
 
   function resize(slv : std_logic_vector; slv_w : natural) return std_logic_vector;
 end package;
@@ -67,9 +74,40 @@ package body standard_pkg is
     return result;
   end function;
 
+  function shift_left(slv : std_logic_vector; num_shift : natural) return std_logic_vector is
+  begin
+    return std_logic_vector(shift_left(unsigned(slv), num_shift));
+  end function;
+  
+  function shift_right(slv : std_logic_vector; num_shift : natural) return std_logic_vector is
+  begin
+    return std_logic_vector(shift_right(unsigned(slv), num_shift));
+  end function;
+
+  function gray2bin(gray : std_logic_vector) return unsigned is
+    variable result : unsigned(gray'length-1 downto 0);
+  begin
+    for IDX in 0 to gray'length-1 loop
+      result(IDX) := xor shift_right(gray, IDX);
+    end loop;
+    return result;
+  end function;
+
+  function bin2gray(bin : unsigned) return std_logic_vector is
+  begin
+    return std_logic_vector(shift_right(bin, 1) xor bin);
+  end function;
+
   function to_slv(num : integer; slv_w : natural) return std_logic_vector is
   begin
     return std_logic_vector(to_signed(num, slv_w));
+  end function;
+
+  function to_unsigned(sl : std_logic) return unsigned is
+    variable result : unsigned(0 downto 0);
+  begin
+    result(0) := sl;
+    return result;
   end function;
 
   function resize(slv : std_logic_vector; slv_w : natural) return std_logic_vector is
