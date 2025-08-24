@@ -52,7 +52,7 @@ async def read_to_verify_write_datas(dut, write_datas: List[int]):
     while read_count < len(write_datas):
         await FallingEdge(dut.clk_i)
         if dut.rd_data_vld_o.value == 1:
-            assert dut.rd_data_o.value.to_signed() == write_datas[read_count]
+            assert dut.rd_data_o.value.signed_integer == write_datas[read_count]
             read_count += 1
 
 
