@@ -18,7 +18,10 @@ async def initialise_dut(dut, num_clock_cycles: int):
 
 
 def generate_random_datas(num_writes: int, data_w: int) -> List[int]:
-    return [random.randint(-(2 ** (data_w - 1)), 2 ** (data_w - 1) - 1) for _ in range(num_writes)]
+    return [
+        random.randint(-(2 ** (data_w - 1)), 2 ** (data_w - 1) - 1)
+        for _ in range(num_writes)
+    ]
 
 
 async def drive_random_writes(dut, write_datas: List[int]):
