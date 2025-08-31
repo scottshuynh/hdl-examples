@@ -1,4 +1,4 @@
-from hdlworkflow.hdlworkflow import HdlWorkflow
+from hdlworkflow import HdlWorkflow
 import os
 import pytest
 import random
