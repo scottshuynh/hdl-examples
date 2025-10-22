@@ -21,12 +21,12 @@ def test_fifo_sync_tb(data_width: int, depth: int):
     pwd = os.path.dirname(__file__)
     print(f"pwd: {pwd}")
     workflow = HdlWorkflow(
-        "nvc",
-        "fifo_sync",
-        "compile_order.txt",
-        pwd,
-        generics,
-        "fifo_sync_tb",
-        [pwd],
+        eda_tool="nvc",
+        top="fifo_sync",
+        path_to_compile_order="compile_order.txt",
+        path_to_working_directory=pwd,
+        generic=generics,
+        cocotb="fifo_sync_tb",
+        pythonpaths=[pwd],
     )
     workflow.run()
