@@ -65,7 +65,7 @@ async def test_random_reads_after_writes(dut):
     cocotb.start_soon(Clock(dut.clk_i, PERIOD_NS, "ns").start())
     await initialise_dut(dut, random.randint(1, 10))
 
-    num_writes = 10
+    num_writes = min(10, dut.DEPTH.value)
     data_w = dut.DATA_W.value
     write_datas = generate_random_datas(num_writes, data_w)
 

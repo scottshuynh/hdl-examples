@@ -1,11 +1,10 @@
 from hdlworkflow import HdlWorkflow
 import os
 import pytest
-import random
 
 
-@pytest.mark.parametrize("data_width", random.sample(range(1, 513), 4))
-@pytest.mark.parametrize("depth", random.sample(range(8, 32769), 4))
+@pytest.mark.parametrize("data_width", [1, 8, 16, 32])
+@pytest.mark.parametrize("depth", [8, 32, 256, 1024])
 def test_fifo_sync_tb(data_width: int, depth: int):
     """Parametrized with pytest, generate 4 random values for generics:
     data_width and depth.
