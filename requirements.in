@@ -1,0 +1,7 @@
+git+https://github.com/pevhall/hdldepends.git
+hdlworkflow
+cocotb
+avl-core
+pip-tools
+pytest
+pytest-xdist
