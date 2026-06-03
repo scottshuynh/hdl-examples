@@ -2,6 +2,7 @@ git+https://github.com/pevhall/hdldepends.git
 hdlworkflow
 cocotb
 avl-core
+vsg
 pip-tools
 pytest
 pytest-xdist

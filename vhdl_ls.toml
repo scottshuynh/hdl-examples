@@ -1,0 +1,8 @@
+preferred_case = "snake"
+standard = "2008"
+
+[libraries.defaultlib]
+files = ["hdl/**/*.vhd"]
+
+[lint]
+unused = true

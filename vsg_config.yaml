@@ -1,0 +1,68 @@
+rule:
+    constant_016:
+        first_paren_new_line: 'no'
+    architecture_015:
+        style: no_blank_line
+    port_010:
+        case: 'lower'
+    architecture_011:
+        case: 'lower'
+    architecture_013:
+        case: 'lower'
+    architecture_014:
+        case: 'lower'
+    component_008:
+        case: 'lower'
+    component_012:
+        case: 'lower'
+    constant_004:
+        case: 'upper'
+    entity_008:
+        case: 'lower'
+    entity_012:
+        case: 'lower'
+    generate_005:
+        case: 'lower'
+    generate_012:
+        case: 'lower'
+    instantiation_008:
+        case: 'lower'
+    instantiation_009:
+        case: 'lower'
+    port_map_002:
+        case: 'lower'
+    process_017:
+        case: 'lower'
+    process_019:
+        case: 'lower'
+    process_022:
+        style: no_blank_line
+    process_023:
+        style: no_blank_line
+    library_007:
+        style: no_blank_line_unless_different_library
+    function_006:
+        style: no_blank_line
+    subprogram_body_201:
+        style: no_blank_line
+    subprogram_body_202:
+        style: no_blank_line
+    subprogram_body_203:
+        style: no_blank_line
+    subprogram_body_204:
+        style: no_blank_line
+    port_007:
+        spaces_before: 1
+        spaces_after : 4
+    port_008:
+        spaces_before: 1
+        spaces_after : 3
+    port_009:
+        spaces_before: 1
+        spaces_after : 1
+
+indent:
+    tokens:
+        use_clause:
+            keyword:
+                token_if_no_matching_library_clause: current
