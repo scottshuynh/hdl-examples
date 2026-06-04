@@ -45,7 +45,7 @@ def test_ram_simple_dual_port(setup_flow, data_w, addr_w, num_pipeline, worker_i
         compile_order=setup_flow["compile_order"],
         path_to_working_directory=setup_flow["pwd"] / "artefacts" / worker_id,
         generics=[f"{data_w=}", f"{addr_w=}", f"{num_pipeline=}"],
-        cocotb="ram_simple_dual_port_avl",
+        cocotb="ram_simple_dual_port_tb",
         pythonpaths=setup_flow["pythonpaths"],
     )
     os.environ["COCOTB_RANDOM_SEED"] = "1337"
@@ -63,7 +63,7 @@ def test_ram_simple_dual_port_gui(setup_flow, data_w, addr_w, num_pipeline, work
         compile_order=setup_flow["compile_order"],
         path_to_working_directory=setup_flow["pwd"] / "artefacts" / worker_id,
         generics=[f"{data_w=}", f"{addr_w=}", f"{num_pipeline=}"],
-        cocotb="ram_simple_dual_port_avl",
+        cocotb="ram_simple_dual_port_tb",
         pythonpaths=setup_flow["pythonpaths"],
         gui=True,
     )

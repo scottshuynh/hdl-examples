@@ -16,7 +16,7 @@ def setup_flow():
                 "hdldepends",
                 f"{repo_root}/hdldepends_config.toml",
                 "--top-entity",
-                "fifo_sync",
+                "skid_buffer",
                 "--compile-order-vhdl-lib",
                 "work:compile_order.txt",
             ]
@@ -34,51 +34,62 @@ def setup_flow():
     return flow_cfg
 
 
-@pytest.mark.parametrize("DATA_W", [1, 8, 11, 16, 32])
-@pytest.mark.parametrize("DEPTH", [8, 32, 256, 1024, 1337])
-@pytest.mark.parametrize("IS_FWFT", [False, True])
+@pytest.mark.parametrize("DATA_W", [1, 8, 11, 72, 256])
+@pytest.mark.parametrize("DEPTH", range(2, 9))
+@pytest.mark.parametrize("rand_ce", [True])
+@pytest.mark.parametrize("rand_rdy", [True])
 @pytest.mark.prod
-def test_fifo_sync_tb(setup_flow, DATA_W: int, DEPTH: int, IS_FWFT: bool, worker_id):
+def test_skid_buffer_tb(
+    setup_flow, DATA_W: int, DEPTH: int, rand_ce: bool, rand_rdy: bool, worker_id
+):
     """
-    Simulate fifo_sync for all elaborated permutations specified.
+    Simulate skid_buffer for all elaborated permutations specified.
     """
-    generics = [f"{DATA_W=}", f"{DEPTH=}", f"{IS_FWFT=}"]
+    generics = [f"{DATA_W=}", f"{DEPTH=}"]
     pwd = os.path.dirname(__file__)
     print(f"pwd: {pwd}")
     workflow = HdlWorkflow(
         eda_tool="nvc",
-        top="fifo_sync",
+        top="skid_buffer",
         compile_order=setup_flow["compile_order"],
         path_to_working_directory=setup_flow["pwd"] / "artefacts" / worker_id,
         generics=generics,
-        cocotb="fifo_sync_tb",
+        cocotb="skid_buffer_tb",
+        plusargs=[
+            "rand_ce" if rand_ce else "",
+            "rand_rdy" if rand_rdy else "",
+        ],
         pythonpaths=setup_flow["pythonpaths"],
     )
     workflow.run()
 
 
 @pytest.mark.parametrize("DATA_W", [8])
-@pytest.mark.parametrize("DEPTH", [32])
-@pytest.mark.parametrize("IS_FWFT", [True])
+@pytest.mark.parametrize("DEPTH", [4])
+@pytest.mark.parametrize("rand_ce", [True])
+@pytest.mark.parametrize("rand_rdy", [True])
 @pytest.mark.gui
-def test_fifo_sync_gui_tb(
-    setup_flow, DATA_W: int, DEPTH: int, IS_FWFT: bool, worker_id
+def test_skid_buffer_gui_tb(
+    setup_flow, DATA_W: int, DEPTH: int, rand_ce: bool, rand_rdy: bool
 ):
     """
-    Simulate fifo_sync for all elaborated permutations specified.
+    Simulate skid_buffer for all elaborated permutations specified.
     Opens gtkwave on completion.
     """
-    generics = [f"{DATA_W=}", f"{DEPTH=}", f"{IS_FWFT=}"]
-    pwd = os.path.dirname(__file__)
-    print(f"pwd: {pwd}")
     workflow = HdlWorkflow(
         eda_tool="nvc",
-        top="fifo_sync",
+        top="skid_buffer",
         compile_order=setup_flow["compile_order"],
-        path_to_working_directory=setup_flow["pwd"] / "artefacts" / worker_id,
-        generics=generics,
-        cocotb="fifo_sync_tb",
+        path_to_working_directory=setup_flow["pwd"],
+        generics=[f"{DATA_W=}", f"{DEPTH=}"],
+        cocotb="skid_buffer_tb",
         pythonpaths=setup_flow["pythonpaths"],
+        plusargs=[
+            "rand_ce" if rand_ce else "",
+            "rand_rdy" if rand_rdy else "",
+        ],
         gui=True,
+        waveform_view_file="nvc/skid_bufferDATA_W=8DEPTH=4.gtkw",
     )
+    os.environ["COCOTB_RANDOM_SEED"] = str(0xCAFEBABE)
     workflow.run()

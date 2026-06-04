@@ -2,18 +2,18 @@
 -- Write and read ports have same widths.
 -- Writes take 1 clock cycles.
 -- Reads take NUM_PIPELINE clock cycles.
--- 
+--
 -- Inferring LUTRAM:
 --     NUM_PIPELINE = 0
--- Inferring BRAM: 
+-- Inferring BRAM:
 --     NUM_PIPELINE > 0
--- Inferring URAM (standalone): 
+-- Inferring URAM (standalone):
 --     NUM_PIPELINE = 0, 1, 2, DATA_W = 72, ADDR_W >= 12.
 --------------------------------------------------------------------------------
 
 library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 
 use work.standard_pkg.all;
 use work.array_pkg.all;
@@ -27,15 +27,16 @@ entity ram_simple_dual_port is
     INIT_RAM     : array_slv_t := NULL_ARRAY_SLV
   );
   port (
-    clk_i         : in std_logic;
-    wr_ce_i       : in std_logic := '1';
-    wr_en_i       : in std_logic_vector(ceil_divide(DATA_W, BYTE_W) - 1 downto 0);
-    wr_addr_i     : in unsigned(ADDR_W - 1 downto 0);
-    wr_data_i     : in std_logic_vector(DATA_W - 1 downto 0);
-    rd_en_i       : in std_logic := '1';
-    rd_addr_i     : in unsigned(ADDR_W - 1 downto 0);
-    rd_data_o     : out std_logic_vector(DATA_W - 1 downto 0) := (others => '0');
-    rd_data_vld_o : out std_logic                             := '0'
+    clk_i         : in    std_logic;
+    wr_ce_i       : in    std_logic                             := '1';
+    wr_en_i       : in    std_logic_vector(ceil_divide(DATA_W, BYTE_W) - 1 downto 0);
+    wr_addr_i     : in    unsigned(ADDR_W - 1 downto 0);
+    wr_data_i     : in    std_logic_vector(DATA_W - 1 downto 0);
+    rd_ce_i       : in    std_logic                             := '1';
+    rd_en_i       : in    std_logic;
+    rd_addr_i     : in    unsigned(ADDR_W - 1 downto 0);
+    rd_data_o     : out   std_logic_vector(DATA_W - 1 downto 0) := (others => '0');
+    rd_data_vld_o : out   std_logic                             := '0'
   );
 end entity ram_simple_dual_port;
 
@@ -44,80 +45,95 @@ architecture rtl of ram_simple_dual_port is
 
   -- If `arr` is a NULL array, returns array of zeros, otherwise returns `arr`.
   function initialise_ram (arr : array_slv_t) return array_slv_t is
-    variable result              : array_slv_t(0 to 2 ** ADDR_W - 1)(DATA_W - 1 downto 0);
+    variable result : array_slv_t(0 to 2 ** ADDR_W - 1)(DATA_W - 1 downto 0);
   begin
     if (arr'left > arr'right) then
       result := (others => (others => '0'));
     else
-      assert arr'length = result'length severity FAILURE;
+      assert arr'length = result'length
+        severity FAILURE;
       result := arr;
     end if;
+
     return result;
-  end function;
+  end function initialise_ram;
 
   function get_cumsum_byte_widths return array_integer_t is
-    variable result                            : array_integer_t(0 to BYTE_EN_W);
+    variable result : array_integer_t(0 to BYTE_EN_W);
   begin
-    l_cumsum : for IDX in result'range loop
-      if IDX = 0 then
+    l_cumsum : for idx in result'range loop
+
+      if (IDX = 0) then
         result(IDX) := 0;
-      elsif IDX = 1 then
-        if BYTE_W > DATA_W then
+      elsif (IDX = 1) then
+        if (BYTE_W > DATA_W) then
           result(IDX) := DATA_W;
         else
           result(IDX) := BYTE_W;
         end if;
       else
-        if IDX * BYTE_W > DATA_W then
+        if (IDX * BYTE_W > DATA_W) then
           result(IDX) := DATA_W;
         else
           result(IDX) := result(IDX - 1) + BYTE_W;
         end if;
       end if;
-    end loop;
-    return result;
-  end function;
 
-  constant CUMSUM_WS : array_integer_t := get_cumsum_byte_widths;
-  signal ram : array_slv_t(0 to 2 ** ADDR_W - 1)(DATA_W - 1 downto 0) := initialise_ram(INIT_RAM);
+    end loop;
+
+    return result;
+  end function get_cumsum_byte_widths;
+
+  constant CUMSUM_WS : array_integer_t                                        := get_cumsum_byte_widths;
+  signal   ram       : array_slv_t(0 to 2 ** ADDR_W - 1)(DATA_W - 1 downto 0) := initialise_ram(INIT_RAM);
 
 begin
+
   -- Writing to RAM takes 1 clock cycle.
-  p_write : process (clk_i)
+  p_write : process (clk_i) is
   begin
     if rising_edge(clk_i) then
       if (wr_ce_i = '1') then
-        for IDX in wr_en_i'range loop
-          if wr_en_i(IDX) = '1' then
-            ram(to_integer(wr_addr_i))(CUMSUM_WS(IDX+1)-1 downto CUMSUM_WS(IDX)) <= wr_data_i(CUMSUM_WS(IDX+1)-1 downto CUMSUM_WS(IDX));
+
+        for idx in wr_en_i'range loop
+
+          if (wr_en_i(IDX) = '1') then
+            ram(to_integer(wr_addr_i))(CUMSUM_WS(IDX + 1) - 1 downto CUMSUM_WS(IDX)) <= wr_data_i(CUMSUM_WS(IDX + 1) - 1 downto CUMSUM_WS(IDX));
           end if;
+
         end loop;
+
       end if;
     end if;
-  end process;
+  end process p_write;
 
   g_zero_rd_latency : if NUM_PIPELINE = 0 generate
     rd_data_o     <= ram(to_integer(rd_addr_i));
     rd_data_vld_o <= rd_en_i;
-  end generate;
+  end generate g_zero_rd_latency;
 
   g_1cc_rd_latency : if NUM_PIPELINE = 1 generate
-    process (clk_i)
+
+    process (clk_i) is
     begin
       if rising_edge(clk_i) then
-        if rd_en_i = '1' then
-          rd_data_o <= ram(to_integer(rd_addr_i));
-        end if; 
-        rd_data_vld_o <= rd_en_i;
+        if (rd_ce_i = '1') then
+          if (rd_en_i = '1') then
+            rd_data_o <= ram(to_integer(rd_addr_i));
+          end if;
+          rd_data_vld_o <= rd_en_i;
+        end if;
       end if;
     end process;
-  end generate;
+
+  end generate g_1cc_rd_latency;
 
   g_rd_latency : if NUM_PIPELINE > 1 generate
     signal z_rd_data     : array_slv_t(0 to NUM_PIPELINE - 1)(DATA_W - 1 downto 0) := (others => (others => '0'));
     signal z_rd_data_vld : std_logic_vector(NUM_PIPELINE - 1 downto 0)             := (others => '0');
   begin
-    p_read : process (clk_i)
+
+    p_read : process (clk_i) is
     begin
       if rising_edge(clk_i) then
         if (rd_en_i = '1') then
@@ -126,14 +142,14 @@ begin
         else
           z_rd_data_vld(0) <= '0';
         end if;
-        z_rd_data(1 to NUM_PIPELINE-1) <= z_rd_data(0 to NUM_PIPELINE-2);
-        z_rd_data_vld(NUM_PIPELINE-1 downto 1) <= z_rd_data_vld(NUM_PIPELINE-2 downto 0);
+        z_rd_data(1 to NUM_PIPELINE - 1)         <= z_rd_data(0 to NUM_PIPELINE - 2);
+        z_rd_data_vld(NUM_PIPELINE - 1 downto 1) <= z_rd_data_vld(NUM_PIPELINE - 2 downto 0);
       end if;
-    end process;
+    end process p_read;
 
     rd_data_o     <= z_rd_data(z_rd_data'high);
     rd_data_vld_o <= z_rd_data_vld(z_rd_data_vld'high);
 
-  end generate;
+  end generate g_rd_latency;
 
-end architecture;
+end architecture rtl;
