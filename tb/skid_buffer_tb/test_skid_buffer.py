@@ -8,6 +8,9 @@ from hdlworkflow import HdlWorkflow
 @pytest.fixture(scope="module")
 def setup_flow():
     try:
+        test_working_dir = Path(__file__).parent
+        os.chdir(test_working_dir)
+
         repo_root = subprocess.check_output(
             ["git", "rev-parse", "--show-toplevel"], text=True
         ).strip()
@@ -27,7 +30,6 @@ def setup_flow():
         raise subprocess.SubprocessError
 
     flow_cfg = dict()
-    test_working_dir = Path(__file__).parent
     flow_cfg["pwd"] = test_working_dir
     flow_cfg["compile_order"] = test_working_dir / "compile_order.txt"
     flow_cfg["pythonpaths"] = [str(test_working_dir)]
